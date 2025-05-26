@@ -1,4 +1,8 @@
-# Projeto da disciplina de Projetos 5 do curso de GTI da Cesar School
+# Mangue Metrics - Dashboard 
+
+### - Projeto da disciplina de Projetos 5 do curso de GTI da Cesar School
+
+
 
 ## Para rodar o dashboard na sua máquina:
 
@@ -27,6 +31,11 @@ source .venv/Scripts/activate
 ```
 pip install -r requirements.txt
 ```
-  
 
-### Ainda em construção
+
+4 - Para rodar o dashboard
+
+
+```
+streamlit run app.py
+```
