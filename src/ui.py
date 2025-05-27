@@ -4,10 +4,12 @@ from streamlit_javascript import st_javascript
 
 def sidebar(ativos_disponiveis, df_ativo):
     theme = st_javascript("window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'")
-    if theme == "dark":
-        st.sidebar.image("images/logo-dark.png", use_container_width=True, width=1)
-    else:
-        st.sidebar.image("images/logo-light.png", use_container_width=True)
+    st.sidebar.image("images/logo-dark.png", use_container_width=True, width=1)
+
+    # if theme == "dark":
+    #     st.sidebar.image("images/logo-dark.png", use_container_width=True, width=1)
+    # else:
+    #     st.sidebar.image("images/logo-light.png", use_container_width=True)
 
     ativo_escolhido = st.sidebar.selectbox("Escolha o ativo:", list(ativos_disponiveis.keys()), index=0)
 

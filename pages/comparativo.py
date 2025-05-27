@@ -3,10 +3,11 @@ import pandas as pd
 import numpy as np
 import yfinance as yf
 import plotly.express as px
-from streamlit_javascript import st_javascript
+
 
 st.set_page_config(page_title="Comparativo de Ativos", layout="wide")
 st.title("Comparativo de Ativos e Simulação de Carteira")
+
 
 ATIVOS = {
     'Bitcoin (BTC)': 'BTC-USD',
@@ -16,7 +17,7 @@ ATIVOS = {
     'EWZ': 'EWZ',
     'IAU': 'IAU',
 }
-
+st.sidebar.image("images/logo-dark.png", use_container_width=True, width=1)
 st.sidebar.header("Monte sua Carteira")
 
 ativos_escolhidos = st.sidebar.multiselect(
