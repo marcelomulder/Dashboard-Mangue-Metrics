@@ -3,6 +3,7 @@ import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 import streamlit as st
 
+# Gráfico principal da aplicação
 def gerar_grafico(df, mostrar_ma, mostrar_rsi, ma_periodos, tipo_grafico, cruzamentos=[], mostrar_cruzamentos=True):
     fig = make_subplots(
         rows=2, cols=1,
@@ -12,6 +13,7 @@ def gerar_grafico(df, mostrar_ma, mostrar_rsi, ma_periodos, tipo_grafico, cruzam
         specs=[[{"type": "xy"}], [{"type": "scatter"}]]
     )
 
+    # Seleciona o tipo de gráfico
     if tipo_grafico == "Candlestick":
         fig.add_trace(
             go.Candlestick(
@@ -35,6 +37,7 @@ def gerar_grafico(df, mostrar_ma, mostrar_rsi, ma_periodos, tipo_grafico, cruzam
             row=1, col=1
         )
 
+    # Mostra ou não as médias móveis
     if mostrar_ma:
         for periodo in ma_periodos:
             mm_x = df['Date'][~df[f"MA{periodo}"].isna()]
@@ -49,6 +52,7 @@ def gerar_grafico(df, mostrar_ma, mostrar_rsi, ma_periodos, tipo_grafico, cruzam
                 row=1, col=1
             )
 
+    #Dá a opção do usuário escolher entre Volume e IFR.
     if mostrar_rsi:
         fig.add_trace(
             go.Scatter(
@@ -73,14 +77,15 @@ def gerar_grafico(df, mostrar_ma, mostrar_rsi, ma_periodos, tipo_grafico, cruzam
             row=2, col=1
         )
 
+    #Dá a opação de mostrar os cruzamentos de média móveis no gráfico
     if mostrar_cruzamentos:
         for cruz in cruzamentos:
             fig.add_trace(
                 go.Scatter(
                     x=[cruz['data']],
                     y=[cruz['preco']],
-                    mode='markers+text',
-                    marker=dict(color='red' if cruz['tipo']=='baixa' else 'green', size=12, symbol='star'),
+                    mode='markers',
+                    marker=dict(color='red' if cruz['tipo']=='baixa' else 'green', size=12, symbol='arrow'),
                     text=[cruz['label']],
                     textposition='top center',
                     name=cruz['label'],
@@ -89,6 +94,7 @@ def gerar_grafico(df, mostrar_ma, mostrar_rsi, ma_periodos, tipo_grafico, cruzam
                 row=1, col=1
             )
 
+    # Configura o fomrato do gráfico
     fig.update_layout(
         height=500,
         font_size=16,
@@ -99,12 +105,12 @@ def gerar_grafico(df, mostrar_ma, mostrar_rsi, ma_periodos, tipo_grafico, cruzam
     )
     return fig
 
+# Mostra as principais métricas do período
 def exibir_metricas(df_periodo):
     st.subheader("Métricas do Período")
     st.metric(label="Menor Volume Diário", value=f"{df_periodo['Volume'].min():,.0f}")
     st.metric(label="Maior Volume Diário", value=f"{df_periodo['Volume'].max():,.0f}")
     st.metric(label="Menor Preço de Fechamento", value=f"${df_periodo['Close'].min():.2f}")
     st.metric(label="Maior Preço de Fechamento", value=f"${df_periodo['Close'].max():.2f}")
-    st.metric(label="Média de Volume Diário", value=f"{df_periodo['Volume'].mean():,.0f}")
-    st.metric(label="Market Cap Atual", value="N/A")
+    st.metric(label="Média de Volume Diário", value=f"{df_periodo['Volume'].mean():,.0f}")    
 

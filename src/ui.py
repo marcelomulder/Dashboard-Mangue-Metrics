@@ -1,7 +1,14 @@
 import streamlit as st
 import pandas as pd
+from streamlit_javascript import st_javascript
 
 def sidebar(ativos_disponiveis, df_ativo):
+    theme = st_javascript("window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'")
+    if theme == "dark":
+        st.sidebar.image("images/logo-dark.png", use_container_width=True, width=1)
+    else:
+        st.sidebar.image("images/logo-light.png", use_container_width=True)
+
     ativo_escolhido = st.sidebar.selectbox("Escolha o ativo:", list(ativos_disponiveis.keys()), index=0)
 
     periodos = ["Último mês", "Último trimestre", "Último ano", "Últimos 3 anos", "Últimos 5 anos", "Máximo"]
@@ -35,7 +42,7 @@ def sidebar(ativos_disponiveis, df_ativo):
     return ativo_escolhido, data_inicio, data_fim, mostrar_ma, mostrar_rsi, tipo_grafico, mostrar_cruzamentos
 
 def exibir_resumo_tendencias(df_periodo, ma_periodos):
-    st.subheader("📌 Resumo das Tendências")
+    #st.subheader("📌 Resumo das Tendências")
     if 'RSI' in df_periodo.columns and not df_periodo['RSI'].isnull().all():
         ultimo_rsi = df_periodo['RSI'].iloc[-1]
         st.write(f"**RSI Atual:** {ultimo_rsi:.2f}")

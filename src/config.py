@@ -9,3 +9,8 @@ ATIVOS_DISPONIVEIS = {
 }
 MA_PERIODOS = [20, 80]
 RSI_PERIODO = 14
+
+PAGINAS = {
+    "app.py": "Início",
+    "comparativo.py": "Simulação de Carteira"
+}
