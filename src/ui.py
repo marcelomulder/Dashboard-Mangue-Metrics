@@ -1,9 +1,9 @@
 import streamlit as st
 import pandas as pd
-from streamlit_javascript import st_javascript
+# from streamlit_javascript import st_javascript
 
 def sidebar(ativos_disponiveis, df_ativo):
-    theme = st_javascript("window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'")
+    # theme = st_javascript("window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'")
     st.sidebar.image("images/logo-dark.png", use_container_width=True, width=1)
 
     # if theme == "dark":
