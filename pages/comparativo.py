@@ -34,7 +34,7 @@ periodo = st.sidebar.selectbox(
 
 if not ativos_escolhidos:
     st.markdown(
-        "<div style='text-align: center; padding-top: 50px; font-size: 1.3em; color: #666;'>"
+        "<div style='text-align: left; padding-top: 50px; font-size: 1.3em; color: #666;'>"
         "Selecione ao menos um ativo no menu lateral para simular a carteira e visualizar o comparativo histórico."
         "</div>",
         unsafe_allow_html=True
