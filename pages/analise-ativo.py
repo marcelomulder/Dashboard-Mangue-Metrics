@@ -75,9 +75,6 @@ def main():
             else:
                 st.info("Nenhum alerta de cruzamento recente.")
 
-    # with col_resumo:
-    #     with st.expander("📌 Resumo das Tendências", expanded=False):
-    #         exibir_resumo_tendencias(df_periodo, MA_PERIODOS)
     
     with col_resumo:
         with st.expander("📊 Indicação - Análise Técnica ", expanded=False):
@@ -95,7 +92,7 @@ def main():
 
 
     # Widget de Heatmap
-    with st.expander(":fire: Heatmap Criptomoedas - Variação Diária", expanded=False):
+    with st.expander(":fire: Heatmap de Criptomoedas - Performance do Mês", expanded=False):
         tradingview_heatmap()
 
     # Rodapé

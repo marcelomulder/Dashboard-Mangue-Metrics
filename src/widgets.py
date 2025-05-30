@@ -2,8 +2,8 @@ import streamlit as st
 
 # analise-ativo.py -------------------------------------
 # Adiciona o heatmap de criptomoedas
-def tradingview_heatmap(title="🌐 Heatmap de Criptomoedas - TradingView", height=650, color_theme="dark"):
-    st.markdown(f"## {title}")
+def tradingview_heatmap(height=650, color_theme="dark"):
+    # st.markdown(f"### {title}")
     st.components.v1.html(f"""
     <!-- TradingView Widget BEGIN -->
     <div class="tradingview-widget-container" style="height:{height}px;">
@@ -16,7 +16,7 @@ def tradingview_heatmap(title="🌐 Heatmap de Criptomoedas - TradingView", heig
       {{
       "dataSource": "Crypto",
       "blockSize": "market_cap_calc",
-      "blockColor": "24h_close_change|5",
+      "blockColor": "Perf.1M",
       "locale": "en",
       "symbolUrl": "",
       "colorTheme": "{color_theme}",

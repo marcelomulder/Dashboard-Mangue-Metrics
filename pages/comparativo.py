@@ -43,11 +43,13 @@ valor_inicial = st.sidebar.number_input(
 )
 
 PERIODOS_LABELS = {
-    "5 anos": "5y",
+    "1 ano": "1y",    
     "3 anos": "3y",
-    "1 ano": "1y",
+    "5 anos": "5y",        
     "Ano Atual": "YTD",
-    "Máx": "max"
+    "6 meses": "6mo",
+    "1 mês": "1mo"
+    
 }
 
 periodo_label = st.sidebar.selectbox(

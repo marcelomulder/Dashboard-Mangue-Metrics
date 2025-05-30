@@ -103,22 +103,25 @@ def exibir_resultado_carteira(
             }
             resumo_df = pd.DataFrame(resumo).T.round(2)
 
+            # Crie a coluna auxiliar ANTES da formatação
+            resumo_df['variacao_float'] = pd.to_numeric(resumo_df['Variação (%)'], errors='coerce')
+
             resumo_df['Valor Inicial'] = resumo_df['Valor Inicial'].apply(moeda)
             resumo_df['Valor Final'] = resumo_df['Valor Final'].apply(moeda)
             resumo_df['Variação (%)'] = resumo_df['Variação (%)'].apply(percentual)
 
-            st.dataframe(resumo_df.style.apply(highlight_carteira, axis=1), height=230)
+            st.dataframe(resumo_df.drop(columns=['variacao_float']).style.apply(highlight_carteira, axis=1), height=230)
 
             st.write("")
             st.write("")
             st.write("")
             st.write("")
                       
-            # Melhor e pior desempenho
+            # Melhor e pior desempenho (com base na coluna auxiliar)
             if len(ativos_com_dados) > 1:
                 ativos_only = [a for a in resumo_df.index if a != "Carteira"]
-                melhor = resumo_df.loc[ativos_only, 'Variação (%)'].idxmax()
-                pior = resumo_df.loc[ativos_only, 'Variação (%)'].idxmin()
+                melhor = resumo_df.loc[ativos_only, 'variacao_float'].idxmax()
+                pior = resumo_df.loc[ativos_only, 'variacao_float'].idxmin()
                 st.markdown(f"""
                     <div style='font-size:1em; color: #28a745;'>
                         🏆 Melhor desempenho: <b>{melhor}</b> ({resumo_df.loc[melhor, 'Variação (%)']}%)
@@ -152,6 +155,6 @@ def exibir_resultado_carteira(
             )
             st.plotly_chart(pie_fig, use_container_width=True)
             st.markdown(
-            "<div style='text-align:center; color: #aaa; font-size: 0.95em;'>Distribuição dos ativos escolhidos na carteira (%)</div>",
-            unsafe_allow_html=True
-)
+                "<div style='text-align:center; color: #aaa; font-size: 0.95em;'>Distribuição dos ativos escolhidos na carteira (%)</div>",
+                unsafe_allow_html=True
+            )
