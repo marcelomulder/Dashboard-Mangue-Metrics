@@ -1,6 +1,7 @@
 import pandas as pd
 import numpy as np
 
+# analise-ativo.py -------------------------------------
 def calcular_medias_moveis(df, ma_periodos):
     for periodo in ma_periodos:
         df[f"MA{periodo}"] = df['Close'].rolling(window=periodo).mean()
@@ -62,3 +63,30 @@ def gerar_alertas(df_periodo, ma_periodos, cruzamentos):
 
     return alertas_rsi, alertas_cruz
 
+# comparativo.py -------------------------------------
+
+def calcular_valorizacao_percentual(df, ativos, pesos, total):
+    df_pct = pd.DataFrame(index=df.index)
+    for ativo in ativos:
+        df_pct[ativo] = (df[ativo] / df[ativo].iloc[0] - 1) * 100
+    if total == 100:
+        carteira_pct = np.zeros(len(df_pct))
+        for ativo in ativos:
+            carteira_pct += df_pct[ativo] * (pesos[ativo] / 100)
+        df_pct['Carteira'] = carteira_pct
+        ativos_grafico = ativos + ['Carteira']
+    else:
+        ativos_grafico = ativos
+    return df_pct, ativos_grafico
+
+def calcular_valor_monetario(df, ativos, pesos, valor_inicial, total):
+    df_valor = pd.DataFrame(index=df.index)
+    valores_iniciais_ativos = {}
+    for ativo in ativos:
+        fatia = pesos[ativo] / 100
+        valor_inicial_ativo = valor_inicial * fatia
+        valores_iniciais_ativos[ativo] = valor_inicial_ativo
+        df_valor[ativo] = (df[ativo] / df[ativo].iloc[0]) * valor_inicial_ativo
+    if total == 100:
+        df_valor['Carteira'] = df_valor[ativos].sum(axis=1)
+    return df_valor, valores_iniciais_ativos

@@ -6,14 +6,18 @@ from src.visualizacao import gerar_grafico, exibir_metricas
 from src.ui import sidebar, exibir_resumo_tendencias
 from src.widgets import tradingview_heatmap
 from src.widgets import tradingview_ticker_tape
+from src.ui import rodape_mangue_metrics
+from src.widgets import tradingview_technical_analysis
 
 def main():
-    st.set_page_config(page_title="Mangue Metrics - Dashboard", layout="wide")
-    
-    #Adiciona a fita de ativos no topo da página
-    tradingview_ticker_tape(height=110, color_theme="dark")
+    st.set_page_config(page_title="Mangue Metrics - Dashboard", layout="wide")    
+    st.html("styles.html")
 
-    #st.title("📊 Análise Técnica e de Risco de Ativos")
+    st.title("Análise e Tendência de Ativos")
+    
+
+    #Adiciona a fita de ativos no topo da página
+    tradingview_ticker_tape(height=110, color_theme="dark")    
 
     ativo_padrao = "Bitcoin"    
     df_ativo_padrao = carregar_dados(ATIVOS_DISPONIVEIS[ativo_padrao])
@@ -28,10 +32,13 @@ def main():
     df = calcular_rsi(df)
     df_periodo = filtrar_periodo(df, data_inicio, data_fim)
 
+
     # Colunas do Gráfico e Metricas
-    col1, col2 = st.columns([2.5, 1])
+    col1, col2 = st.columns([2.4, 1])
     with col1:
-        st.subheader("Gráfico de Preço")
+        st.html('<span class="graph_indicator"></span>')
+        st.subheader(f"Acompanhamento da Variação de Preço — {ativo_escolhido}")
+    
         if mostrar_ma:
             cruzamentos = detectar_cruzamentos(df_periodo, MA_PERIODOS)
         else:
@@ -39,10 +46,16 @@ def main():
 
         fig = gerar_grafico(df_periodo, mostrar_ma, mostrar_rsi, MA_PERIODOS, tipo_grafico, cruzamentos, mostrar_cruzamentos)
         st.plotly_chart(fig, use_container_width=True)
-    with col2:
-        exibir_metricas(df_periodo)
 
-    # Colunas do Alerta e Reumo
+    with col2:        
+        st.html('<span class="metrics_indicator"></span>')
+        exibir_metricas(df_periodo)
+        with st.expander("📌 Resumo das Tendências", expanded=False):
+            exibir_resumo_tendencias(df_periodo, MA_PERIODOS)
+    
+
+
+    # Colunas do Alerta e Resumo
     col_alertas, col_resumo = st.columns(2)
     alertas_rsi, alertas_cruz = gerar_alertas(df_periodo, MA_PERIODOS, cruzamentos)
     
@@ -62,16 +75,31 @@ def main():
             else:
                 st.info("Nenhum alerta de cruzamento recente.")
 
+    # with col_resumo:
+    #     with st.expander("📌 Resumo das Tendências", expanded=False):
+    #         exibir_resumo_tendencias(df_periodo, MA_PERIODOS)
+    
     with col_resumo:
-        with st.expander("📌 Resumo das Tendências", expanded=False):
-            exibir_resumo_tendencias(df_periodo, MA_PERIODOS)
+        with st.expander("📊 Indicação - Análise Técnica ", expanded=False):
+            # Ajuste o símbolo conforme o ativo escolhido
+            SYMBOLS_TV = {
+                "Bitcoin": "BITSTAMP:BTCUSD",
+                "Solana": "BITSTAMP:SOLUSD",
+                "Ripple": "BITSTAMP:XRPUSD",
+                "SPY": "AMEX:SPY",
+                "EWZ": "AMEX:EWZ",
+                "IAU": "AMEX:IAU"
+            }
+            tv_symbol = SYMBOLS_TV.get(ativo_escolhido, "BITSTAMP:BTCUSD")
+            tradingview_technical_analysis(symbol=tv_symbol)
+
 
     # Widget de Heatmap
     with st.expander(":fire: Heatmap Criptomoedas - Variação Diária", expanded=False):
         tradingview_heatmap()
 
-    st.markdown("---")
-    st.caption("Desenvolvido pela Mangue Metrics - 2025")
+    # Rodapé
+    rodape_mangue_metrics()
 
 if __name__ == "__main__":
     main()

@@ -1,0 +1,48 @@
+<style>
+    
+    /* h3 {        
+        text-align: center;
+    }    */
+    
+    div[data-testid="stMetric"]{
+        /* background-color: rgb(25, 25, 25); */
+        border: 1px solid dark;
+        border-radius: 5px;
+        padding: 1em 1em;
+        box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15);
+    }
+
+    label[data-testid="stMetricLabel"] p {
+        font-size: 1.1em;                
+    }
+
+    div[data-testid="stMetricValue"] {
+        font-size: 1.2em;
+        font-weight: 700;        
+    }
+
+    div[data-testid="stVerticalBlock"]:has(> div > .stHtml > .left_indicator){
+        & div[data-testid="stMetric"] {
+            /* background-color: red; */
+            border-left: 0.5rem solid grey;
+        }
+        
+    }
+
+    div[data-testid="stVerticalBlock"]:has(> div > .stHtml > .right_indicator){
+        & div[data-testid="stMetric"] {
+            /* background-color: red; */
+            border-left: 0.5rem solid grey;
+        }
+        
+    }
+        
+    div[data-testid="stVerticalBlock"]:has(> div > .stHtml > .graph_indicator) {
+        margin-top: 1em;
+        padding: 1em;
+        border-radius: 16px;
+        box-shadow: 0px 0px 15px rgba(81, 85, 195, 0.2);        
+        
+    }
+
+</style>

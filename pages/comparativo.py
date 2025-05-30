@@ -1,44 +1,87 @@
 import streamlit as st
-import pandas as pd
-import numpy as np
-import yfinance as yf
 import plotly.express as px
+from src.dados import carregar_dados_yf, filtrar_ativos_disponiveis
+from src.indicadores import calcular_valorizacao_percentual, calcular_valor_monetario
+from src.visualizacao import grafico_evolucao_percentual, adicionar_anotacoes_percentuais
+from src.ui import highlight_carteira, moeda
+from src.widgets import tradingview_ticker_tape
+from src.ui import exibir_resultado_carteira
+from src.ui import rodape_mangue_metrics
 
 
-st.set_page_config(page_title="Comparativo de Ativos", layout="wide")
-st.title("Comparativo de Ativos e Simulação de Carteira")
+st.set_page_config(page_title="Simulador de Carteira", layout="wide")
+st.html("styles.html")
+st.title("Simulador de Carteira")
 
+tradingview_ticker_tape(height=110, color_theme="dark")
 
 ATIVOS = {
-    'Bitcoin (BTC)': 'BTC-USD',
-    'Solana (SOL)': 'SOL-USD',
-    'Ripple (XRP)': 'XRP-USD',
+    'Bitcoin': 'BTC-USD',
+    'Solana': 'SOL-USD',
+    'Ethereum': 'ETH-USD',
+    'Ripple': 'XRP-USD',
     'SPY': 'SPY',
     'EWZ': 'EWZ',
     'IAU': 'IAU',
 }
+
 st.sidebar.image("images/logo-dark.png", use_container_width=True, width=1)
 st.sidebar.header("Monte sua Carteira")
 
 ativos_escolhidos = st.sidebar.multiselect(
     "Selecione os ativos:",
     list(ATIVOS.keys()),
-    default=[]  # Não deixa nenhum selecionado
+    default=[]
 )
 
-periodo = st.sidebar.selectbox(
+valor_inicial = st.sidebar.number_input(
+    "Valor inicial da carteira:",
+    min_value=10.0,
+    value=1000.0,
+    step=100.0,
+    format="%.2f"
+)
+
+PERIODOS_LABELS = {
+    "5 anos": "5y",
+    "3 anos": "3y",
+    "1 ano": "1y",
+    "Ano Atual": "YTD",
+    "Máx": "max"
+}
+
+periodo_label = st.sidebar.selectbox(
     "Período dos dados",
-    options=["5y", "3y", "1y", "YTD", "max"],
+    options=list(PERIODOS_LABELS.keys()),
     index=0
 )
+periodo = PERIODOS_LABELS[periodo_label]  # Valor técnico usado no yfinance
+
+st.sidebar.markdown("---")
+
+if valor_inicial < 100.0:
+    st.sidebar.info("Considere inserir um valor inicial maior para simulações mais realistas.")
 
 if not ativos_escolhidos:
     st.markdown(
-        "<div style='text-align: left; padding-top: 50px; font-size: 1.3em; color: #666;'>"
-        "Selecione ao menos um ativo no menu lateral para simular a carteira e visualizar o comparativo histórico."
-        "</div>",
-        unsafe_allow_html=True
+        """
+        <div style='
+            text-align: center; 
+            padding-top: 70px; 
+            font-size: 1.3em; 
+            color: #444; 
+            background: rgba(30,30,30,0.05); 
+            border-radius: 8px; 
+            padding: 30px; 
+            margin: 30px 0; 
+            box-shadow: 0 1px 8px #0001;'>
+            <b>Bem-vindo!</b><br>
+            Selecione ao menos um ativo no menu lateral para montar sua carteira e visualizar o comparativo histórico.<br>
+            <span style='font-size:0.95em; color: #888;'>Dica: você pode ajustar os pesos dos ativos para simular diferentes estratégias.</span>
+        </div>
+        """, unsafe_allow_html=True
     )
+    rodape_mangue_metrics()
     st.stop()
 
 pesos = {}
@@ -51,75 +94,49 @@ for ativo in ativos_escolhidos:
     pesos[ativo] = peso
     total += peso
 
+#Mostrar erro caso a carteira não esteja 100%
 if total != 100:
-    st.sidebar.warning("A soma dos pesos deve ser igual a 100%.")
-
-@st.cache_data(show_spinner=False)
-def load_yf_data(tickers, period):
-    data = yf.download(list(tickers.values()), period=period, auto_adjust=True)
-    if isinstance(data.columns, pd.MultiIndex):
-        close = data['Close']
-        close.columns = [k for k in tickers.keys()]
+    if total < 100:
+        faltando = 100 - total
+        st.warning(f"Faltam {faltando}% para completar 100% da alocação.")
     else:
-        close = data[['Close']]
-        close.columns = [list(tickers.keys())[0]]
-    close = close.dropna()
-    return close
+        excedente = total - 100
+        st.warning(f"Excedeu em {excedente}% o limite de 100% da alocação.")
 
 ativos_filtrados = {k: ATIVOS[k] for k in ativos_escolhidos}
-df = load_yf_data(ativos_filtrados, periodo)
+df = carregar_dados_yf(ativos_filtrados, periodo)
+ativos_com_dados = filtrar_ativos_disponiveis(df, ativos_escolhidos)
 
-# Colunas já são os nomes exibidos ao usuário
-df_norm = df.copy()
-for ativo in ativos_escolhidos:
-    df_norm[ativo] = df_norm[ativo] / df_norm[ativo].iloc[0] * 100
+if not ativos_com_dados:
+    st.warning("Nenhum dos ativos selecionados possui dados disponíveis para o período escolhido.")     
+    
+    st.stop()
 
-# Cálculo da carteira
-if total == 100:
-    carteira = np.zeros(len(df_norm))
-    for ativo in ativos_escolhidos:
-        carteira += df_norm[ativo] * (pesos[ativo]/100)
-    df_norm['Carteira'] = carteira
-    ativos_grafico = ativos_escolhidos + ['Carteira']
-else:
-    ativos_grafico = ativos_escolhidos
+# Gráfico Simulação de Carteira
+col1, col2, col3 = st.columns([0.1, 3, 0.3])
 
-# Gráfico interativo Plotly
-st.subheader("Evolução dos Ativos Selecionados (Normalizados)")
-df_plotly = df_norm[ativos_grafico].copy()
-df_plotly['Data'] = df_norm.index
-df_plotly = pd.melt(df_plotly, id_vars=['Data'], value_vars=ativos_grafico,
-                    var_name='Ativo', value_name='Valor Normalizado')
 
-fig = px.line(
-    df_plotly, x="Data", y="Valor Normalizado", color="Ativo",
-    labels={"Data": "Data", "Valor Normalizado": "Valor Normalizado (Base 100)", "Ativo": "Ativo"},
-    title="Evolução dos Ativos e Carteira (Normalizados)"
-)
-fig.update_layout(legend_title_text='Ativo', xaxis_title='Data', yaxis_title='Valor Normalizado (Base 100)')
-st.plotly_chart(fig, use_container_width=True)
+with col2:
+    st.html('<span class="graph_indicator"></span>')
+    st.subheader("Gráfico - Evolução da Carteira e Ativos")
+    df_pct, ativos_grafico = calcular_valorizacao_percentual(df, ativos_com_dados, pesos, total)
+    fig = grafico_evolucao_percentual(df_pct, ativos_grafico)
+    fig = adicionar_anotacoes_percentuais(fig, df_pct, ativos_grafico)
+    st.plotly_chart(fig, use_container_width=True)
 
-st.markdown("""
-- O gráfico mostra a evolução dos ativos selecionados e da carteira composta conforme os pesos definidos.
-- Os valores são normalizados (base 100 no início do período).
-""")
+# Cálculo monetário para o resumo
+df_valor, valores_iniciais_ativos = calcular_valor_monetario(df, ativos_com_dados, pesos, valor_inicial, total)
 
-if total == 100:
-    st.subheader("Resumo do Desempenho ao Final do Período")
-    resumo = {}
-    for ativo in ativos_grafico:
-        resumo[ativo] = {
-            'Valor Inicial': df[ativo].iloc[0] if ativo != 'Carteira' else 100,
-            'Valor Final': df[ativo].iloc[-1] if ativo != 'Carteira' else carteira[-1],
-            'Variação (%)': (df[ativo].iloc[-1] / df[ativo].iloc[0] - 1) * 100 if ativo != 'Carteira' else (carteira[-1] / 100 - 1) * 100
-        }
-    st.dataframe(pd.DataFrame(resumo).T.round(2))
+with st.expander("Resultado da Carteira", expanded=False):
+    exibir_resultado_carteira(
+        ativos_com_dados=ativos_com_dados,
+        valores_iniciais_ativos=valores_iniciais_ativos,
+        df_valor=df_valor,
+        valor_inicial=valor_inicial,
+        pesos=pesos,
+        total=total
+    )
 
-st.markdown("""
-### Insights
-- Explore diferentes composições de carteira para ver qual seria a performance histórica.
-- Você pode usar esses dados para avaliar estratégias de diversificação.
-""")
+#st.markdown("---")
+rodape_mangue_metrics()
 
-st.markdown("---")
-st.caption("Desenvolvido pela Mangue Metrics - 2025")
