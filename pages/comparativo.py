@@ -9,8 +9,11 @@ from src.ui import exibir_resultado_carteira
 from src.ui import rodape_mangue_metrics
 
 
+
 st.set_page_config(page_title="Simulador de Carteira", layout="wide")
+
 st.html("styles.html")
+
 st.title("Simulador de Carteira")
 
 tradingview_ticker_tape(height=110, color_theme="dark")

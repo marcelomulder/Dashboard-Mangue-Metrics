@@ -7,7 +7,19 @@ import pandas as pd
 
 # analise-ativo.py -------------------------------------
 # Gráfico principal da aplicação
-def gerar_grafico(df, mostrar_ma, mostrar_rsi, ma_periodos, tipo_grafico, cruzamentos=[], mostrar_cruzamentos=True):
+
+def gerar_grafico(
+    df,
+    mostrar_ma,
+    mostrar_rsi,
+    ma_periodos,
+    tipo_grafico,
+    cruzamentos=[],
+    mostrar_cruzamentos=True,
+    titulo="",
+    y_label_preco="Preço",
+    y_label_indicador="Volume/RSI"
+):
     fig = make_subplots(
         rows=2, cols=1,
         shared_xaxes=True,
@@ -16,7 +28,7 @@ def gerar_grafico(df, mostrar_ma, mostrar_rsi, ma_periodos, tipo_grafico, cruzam
         specs=[[{"type": "xy"}], [{"type": "scatter"}]]
     )
 
-    # Seleciona o tipo de gráfico
+    # Gráfico de Preço (linha ou candlestick)
     if tipo_grafico == "Candlestick":
         fig.add_trace(
             go.Candlestick(
@@ -40,7 +52,7 @@ def gerar_grafico(df, mostrar_ma, mostrar_rsi, ma_periodos, tipo_grafico, cruzam
             row=1, col=1
         )
 
-    # Mostra ou não as médias móveis
+    # Médias móveis (se ativado)
     if mostrar_ma:
         for periodo in ma_periodos:
             mm_x = df['Date'][~df[f"MA{periodo}"].isna()]
@@ -55,7 +67,7 @@ def gerar_grafico(df, mostrar_ma, mostrar_rsi, ma_periodos, tipo_grafico, cruzam
                 row=1, col=1
             )
 
-    #Dá a opção do usuário escolher entre Volume e IFR.
+    # RSI ou Volume
     if mostrar_rsi:
         fig.add_trace(
             go.Scatter(
@@ -69,7 +81,7 @@ def gerar_grafico(df, mostrar_ma, mostrar_rsi, ma_periodos, tipo_grafico, cruzam
         fig.add_hline(y=70, line_dash="dash", line_color="red", row=2, col=1)
         fig.add_hline(y=30, line_dash="dash", line_color="green", row=2, col=1)
     else:
-        cores = np.where(df['Close'] >= df['Open'], 'rgba(34, 139, 34, 0.7)', 'rgba(220,20,60,0.7)')
+        cores = np.where(df['Close'] >= df['Open'], 'rgba(34,139,34,0.7)', 'rgba(220,20,60,0.7)')
         fig.add_trace(
             go.Bar(
                 x=df['Date'],
@@ -80,33 +92,47 @@ def gerar_grafico(df, mostrar_ma, mostrar_rsi, ma_periodos, tipo_grafico, cruzam
             row=2, col=1
         )
 
-    #Dá a opação de mostrar os cruzamentos de média móveis no gráfico
-    if mostrar_cruzamentos:
-        for cruz in cruzamentos:
+    # Cruzamentos (apenas se mostrar_ma e mostrar_cruzamentos)
+    if mostrar_cruzamentos and mostrar_ma and cruzamentos:
+        for cruz in cruzamentos[-2:]:
             fig.add_trace(
                 go.Scatter(
                     x=[cruz['data']],
                     y=[cruz['preco']],
                     mode='markers',
-                    marker=dict(color='red' if cruz['tipo']=='baixa' else 'green', size=12, symbol='arrow'),
-                    text=[cruz['label']],
-                    textposition='top center',
+                    marker=dict(
+                        color='red' if cruz['tipo'] == 'baixa' else 'green',
+                        size=13,
+                        symbol='star'
+                    ),
                     name=cruz['label'],
                     showlegend=False
                 ),
                 row=1, col=1
             )
 
-    # Configura o fomrato do gráfico
+    # Atualiza layout com labels dinâmicos
     fig.update_layout(
         height=500,
         font_size=16,
         showlegend=True,
-        xaxis_rangeslider_visible=False,
         margin=dict(l=50, r=50, t=50, b=50, pad=0),
-        legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1)
+        legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1),
+        title=dict(
+            text=titulo,
+            font=dict(size=20),
+            x=0.5  # Centralizado
+        ),
     )
+    fig.update_xaxes(title_text="Data", row=2, col=1)
+    fig.update_yaxes(title_text=y_label_preco, row=1, col=1)
+    fig.update_yaxes(title_text=y_label_indicador, row=2, col=1)
+
+    # Remove o range slider (existe só na xaxis primária)
+    fig.update_layout(xaxis_rangeslider_visible=False)
+
     return fig
+
 
 # Mostra as principais métricas do período
 def exibir_metricas(hist):

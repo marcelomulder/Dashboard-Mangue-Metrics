@@ -10,7 +10,7 @@ from src.ui import rodape_mangue_metrics
 from src.widgets import tradingview_technical_analysis
 
 def main():
-    st.set_page_config(page_title="Mangue Metrics - Dashboard", layout="wide")    
+    st.set_page_config(page_title="Análise de Ativos", layout="wide")    
     st.html("styles.html")
 
     st.title("Análise e Tendência de Ativos")
@@ -44,8 +44,20 @@ def main():
         else:
             cruzamentos = []
 
-        fig = gerar_grafico(df_periodo, mostrar_ma, mostrar_rsi, MA_PERIODOS, tipo_grafico, cruzamentos, mostrar_cruzamentos)
+        fig = gerar_grafico(
+            df_periodo,
+            mostrar_ma,
+            mostrar_rsi,
+            MA_PERIODOS,
+            tipo_grafico,
+            cruzamentos,
+            mostrar_cruzamentos,
+            # titulo=f"Gráfico de Preço — {ativo_escolhido}",
+            y_label_preco="Preço (USD)",
+            y_label_indicador="Volume" if not mostrar_rsi else "RSI"
+        )
         st.plotly_chart(fig, use_container_width=True)
+
 
     with col2:        
         st.html('<span class="metrics_indicator"></span>')
