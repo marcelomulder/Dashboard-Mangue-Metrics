@@ -9,6 +9,9 @@ from src.widgets import tradingview_ticker_tape
 from src.ui import rodape_mangue_metrics
 from src.widgets import tradingview_technical_analysis
 
+def tooltip(texto, dica):
+    return f"<span title='{dica}' style='text-decoration:underline dotted; cursor:help;'>{texto}</span>"
+
 def main():
     st.set_page_config(page_title="Análise de Ativos", layout="wide")    
     st.html("styles.html")
@@ -61,23 +64,23 @@ def main():
 
     with col2:
         st.html('<span class="graph_indicator"></span>')        
-        # st.html('<span class="metrics_indicator"></span>')
-        exibir_metricas(df_periodo)
-        # with st.expander("📌 Resumo das Tendências", expanded=False):
-        
+        exibir_metricas(df_periodo)        
         exibir_resumo_tendencias(df_periodo, MA_PERIODOS)
     
 
     with st.expander("🔔 Alertas Técnicos", expanded=False):
     # Colunas do Alerta e Resumo
     
-        col_alertas, _, col_resumo = st.columns([0.7, 0.5, 1])
+        col_alertas, _, col_resumo = st.columns([1, 0.1, 1])
         alertas_rsi, alertas_cruz = gerar_alertas(df_periodo, MA_PERIODOS, cruzamentos)
         
         with col_alertas:
             st.html('<span class="graph_indicator"></span>')
-            # with st.expander("🔔 Alertas Técnicos", expanded=False):
-            st.markdown("**IFR (RSI):**")
+                                    
+            st.markdown(
+                f"**RSI** {tooltip(' **(IFR):**', 'Índice de Força Relativa: mede o momentum do ativo em relação ao seu histórico recente.')}.",
+                unsafe_allow_html=True
+            )
             if alertas_rsi:
                 for alerta in reversed(alertas_rsi):
                     st.warning(alerta)
@@ -93,8 +96,13 @@ def main():
 
         
         with col_resumo:
-            st.html('<span class="graph_indicator"></span>')
-            st.markdown("**📊 Indicação - Análise Técnica:**")
+            st.html('<span class="graph_indicator"></span>')            
+            st.markdown(
+                f"**📊** {tooltip(' **Indicação - Análise Técnica:**', 'Informa a tendência do ativo no período escolhido utilizando 25 indicadores diferentes')}.",
+                unsafe_allow_html=True
+            )
+            
+            
             # Ajuste o símbolo conforme o ativo escolhido
             SYMBOLS_TV = {
                 "Bitcoin": "BITSTAMP:BTCUSD",

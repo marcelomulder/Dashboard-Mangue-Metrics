@@ -74,6 +74,9 @@ def exibir_resumo_tendencias(df_periodo, ma_periodos):
 
 
 # comparativo.py -------------------------------------
+def tooltip(texto, dica):
+    return f"<span title='{dica}' style='text-decoration:underline dotted; cursor:help;'>{texto}</span>"
+
 def highlight_carteira(s):
     return ['background-color: #222; color: #fff' if s.name == 'Carteira' else '' for _ in s]
 
@@ -82,6 +85,16 @@ def moeda(valor):
 
 def percentual(valor):
     return f"{valor:,.2f}"
+
+def calcular_drawdown_maximo(serie):
+    """
+    Recebe uma série (ex: valor da carteira ao longo do tempo)
+    e retorna o drawdown máximo percentual (float negativo).
+    """
+    acumulado = serie.cummax()
+    drawdown = (serie / acumulado) - 1
+    return drawdown.min() * 100  # Em percentual
+
 
 def exibir_resultado_carteira(
     ativos_com_dados, valores_iniciais_ativos, df_valor, 
@@ -126,12 +139,21 @@ def exibir_resultado_carteira(
             st.html('<span class="graph_indicator"></span>')
             st.markdown("#### Destaques")
             st.write("")
-            st.write("")
+                       
             if len(ativos_com_dados) > 1:
                 ativos_only = [a for a in resumo_df.index if a != "Carteira"]
                 melhor = resumo_df.loc[ativos_only, 'variacao_float'].idxmax()
                 pior = resumo_df.loc[ativos_only, 'variacao_float'].idxmin()
-                # Card Melhor Desempenho (dark compact)
+                # Drawdown máximo da carteira
+                def calcular_drawdown_maximo(serie):
+                    acumulado = serie.cummax()
+                    drawdown = (serie / acumulado) - 1
+                    return drawdown.min() * 100  # percentual negativo
+
+                drawdown_pct = calcular_drawdown_maximo(df_valor['Carteira'])
+                drawdown_str = f"{drawdown_pct:.2f}%"
+
+                # Melhor desempenho (dark compact)
                 st.markdown(
                     f"""
                     <div style='
@@ -139,7 +161,7 @@ def exibir_resultado_carteira(
                         border-left: 4px solid #3ec46d;
                         border-radius: 8px;
                         padding: 8px 12px 8px 12px;
-                        margin-bottom: 12px;
+                        margin-bottom: 10px;
                         text-align: left;
                         box-shadow: 0 1px 6px #212b26cc;'>
                         <div style='font-size:1.25em; display:inline-block; margin-right:6px;'>🏆</div>
@@ -151,7 +173,9 @@ def exibir_resultado_carteira(
                     </div>
                     """, unsafe_allow_html=True
                 )
-                # Card Pior Desempenho (dark compact)
+                st.write("")
+
+                # Pior desempenho (dark compact)                
                 st.markdown(
                     f"""
                     <div style='
@@ -159,7 +183,7 @@ def exibir_resultado_carteira(
                         border-left: 4px solid #d34646;
                         border-radius: 8px;
                         padding: 8px 12px 8px 12px;
-                        margin-bottom: 6px;
+                        margin-bottom: 10px;
                         text-align: left;
                         box-shadow: 0 1px 6px #342222cc;'>
                         <div style='font-size:1.25em; display:inline-block; margin-right:6px;'>⚠️</div>
@@ -171,6 +195,31 @@ def exibir_resultado_carteira(
                     </div>
                     """, unsafe_allow_html=True
                 )
+                st.write("")
+
+                
+                # Drawdown máximo (dark compact)
+                st.markdown(
+                    f"""
+                    <div style='
+                        background: #232434;
+                        border-left: 4px solid #3486eb;
+                        border-radius: 8px;
+                        padding: 8px 12px 8px 12px;
+                        margin-bottom: 8px;
+                        text-align: left;
+                        box-shadow: 0 1px 6px #223366cc;'>
+                        <div style='font-size:1.25em; display:inline-block; margin-right:6px;'>📉</div>
+                        <span style='font-size:1.08em; font-weight:600; color:#b6d5ff;'>Máximo {tooltip(' Drawdown', 'O Máximo Drawdown (MDD) ' \
+                        'é uma métrica de risco que mede a maior queda de um ativo ou portfólio de investimentos, desde um pico até um vale, antes de um novo pico ser alcançado')}
+                          da Carteira</span>
+                        <span style='font-size:1em; color:#fff; margin-left:6px;'>
+                            <b>{drawdown_str}</b>
+                        </span>                        
+                    </div>
+                    """, unsafe_allow_html=True
+                )
+
         
         # Fim da área da tabela de desempenho e cards de melhor e pior desempenho       
         
