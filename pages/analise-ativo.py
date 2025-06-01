@@ -34,7 +34,7 @@ def main():
 
 
     # Colunas do Gráfico e Metricas
-    col1, col2 = st.columns([2.4, 1])
+    col1, col2 = st.columns([2.2, 1])
     with col1:
         st.html('<span class="graph_indicator"></span>')
         st.subheader(f"Acompanhamento da Variação de Preço — {ativo_escolhido}")
@@ -59,20 +59,24 @@ def main():
         st.plotly_chart(fig, use_container_width=True)
 
 
-    with col2:        
-        st.html('<span class="metrics_indicator"></span>')
+    with col2:
+        st.html('<span class="graph_indicator"></span>')        
+        # st.html('<span class="metrics_indicator"></span>')
         exibir_metricas(df_periodo)
-        with st.expander("📌 Resumo das Tendências", expanded=False):
-            exibir_resumo_tendencias(df_periodo, MA_PERIODOS)
+        # with st.expander("📌 Resumo das Tendências", expanded=False):
+        
+        exibir_resumo_tendencias(df_periodo, MA_PERIODOS)
     
 
-
+    with st.expander("🔔 Alertas Técnicos", expanded=False):
     # Colunas do Alerta e Resumo
-    col_alertas, col_resumo = st.columns(2)
-    alertas_rsi, alertas_cruz = gerar_alertas(df_periodo, MA_PERIODOS, cruzamentos)
     
-    with col_alertas:
-        with st.expander("🔔 Alertas Técnicos", expanded=False):
+        col_alertas, _, col_resumo = st.columns([0.7, 0.5, 1])
+        alertas_rsi, alertas_cruz = gerar_alertas(df_periodo, MA_PERIODOS, cruzamentos)
+        
+        with col_alertas:
+            st.html('<span class="graph_indicator"></span>')
+            # with st.expander("🔔 Alertas Técnicos", expanded=False):
             st.markdown("**IFR (RSI):**")
             if alertas_rsi:
                 for alerta in reversed(alertas_rsi):
@@ -87,9 +91,10 @@ def main():
             else:
                 st.info("Nenhum alerta de cruzamento recente.")
 
-    
-    with col_resumo:
-        with st.expander("📊 Indicação - Análise Técnica ", expanded=False):
+        
+        with col_resumo:
+            st.html('<span class="graph_indicator"></span>')
+            st.markdown("**📊 Indicação - Análise Técnica:**")
             # Ajuste o símbolo conforme o ativo escolhido
             SYMBOLS_TV = {
                 "Bitcoin": "BITSTAMP:BTCUSD",

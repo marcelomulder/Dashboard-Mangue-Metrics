@@ -165,9 +165,7 @@ def exibir_metricas(hist):
     # Volatilidade histórica do período (desvio padrão dos retornos diários, anualizado)
     retornos_diarios = hist['Close'].pct_change().dropna()
     volatilidade = retornos_diarios.std() * np.sqrt(252) * 100  # Expressa em %
-    
-    st.write("")
-    st.write("")
+        
     st.subheader("Métricas do Período")
 
     col1, col2, col3, col4 = st.columns([0.05, 1.2, 1.2, 0.05])
@@ -211,7 +209,7 @@ def grafico_evolucao_percentual(df_pct, ativos_grafico):
             font=dict(size=13),
         ),
         margin=dict(l=30, r=30, t=30, b=10),
-        height=600,
+        height=570,
         plot_bgcolor='rgba(0,0,0,0)',  # fundo transparente
         paper_bgcolor='rgba(0,0,0,0)'
     )
@@ -243,5 +241,60 @@ def adicionar_anotacoes_percentuais(fig, df_pct, ativos_grafico):
             arrowcolor=cor_serie,
             align="left"
         )
+    return fig
+
+import plotly.graph_objects as go
+
+def grafico_waterfall_carteira_percentual(labels, valores_iniciais_ativos, resumo_df, df_valor, valor_inicial):
+    """
+    Gera um gráfico de cascata (waterfall) mostrando a contribuição percentual de cada ativo no resultado final da carteira.
+    O gráfico é ordenado do maior rendimento ao maior perda.
+    """
+    # Calcula as contribuições percentuais
+    contrib_tuplas = []
+    for ativo in labels:
+        valor_inicial_ativo = valores_iniciais_ativos[ativo]
+        variacao_pct = resumo_df.loc[ativo, 'variacao_float']
+        ganho_perda = valor_inicial_ativo * variacao_pct / 100
+        contrib_pct = ganho_perda / valor_inicial * 100
+        contrib_tuplas.append((ativo, contrib_pct))
+
+    # Ordena do maior para o menor
+    contrib_tuplas.sort(key=lambda x: x[1], reverse=True)
+    sorted_labels = [t[0] for t in contrib_tuplas]
+    sorted_contribs = [t[1] for t in contrib_tuplas]
+
+    # Total da carteira
+    total_final = df_valor['Carteira'].iloc[-1]
+    total = (total_final / valor_inicial - 1) * 100
+
+    st.markdown("#### Contribuição percentual na formação do resultado da carteira")
+    fig = go.Figure(go.Waterfall(
+        name="Contribuição por ativo",
+        orientation="v",
+        measure=["relative"] * len(sorted_labels) + ["total"],
+        x=sorted_labels + ["Carteira"],
+        y=sorted_contribs + [total],
+        text=[f"{v:+.2f}%" for v in sorted_contribs] + [f"{total:+.2f}%"],
+        connector={"line": {"color": "rgb(63, 63, 63)", "width": 1}},
+        cliponaxis=False  # Evita cortes de textos
+    ))
+    fig.update_layout(
+        # title="Contribuição Percentual de Cada Ativo no Resultado da Carteira",
+        showlegend=False,
+        margin=dict(l=40, r=40, t=80, b=40),  # Margens maiores para evitar corte
+        height=420,
+        xaxis_title="Ativo",
+        yaxis_title="Contribuição (%)",
+        plot_bgcolor='rgba(0,0,0,0)',
+        paper_bgcolor='rgba(0,0,0,0)'
+    )
+    fig.update_traces(
+        textposition="outside",
+        increasing={"marker": {"color": "#28a745"}},
+        decreasing={"marker": {"color": "#c00"}},
+        totals={"marker": {"color": "#444"}},
+        cliponaxis=False  # Garante que o texto não será cortado
+    )
     return fig
 

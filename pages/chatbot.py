@@ -4,6 +4,8 @@ from streamlit_chat import message
 from src.utils import checar_limite_mensagens
 from src.ui import rodape_mangue_metrics
 
+
+
 #Checa se tem API Key
 if "gemini_api_key" not in st.secrets or not st.secrets["gemini_api_key"]:
     st.error("❌ API Key do Gemini não configurada. O chatbot está temporariamente indisponível.")
@@ -13,6 +15,7 @@ genai.configure(api_key=st.secrets["gemini_api_key"])
 
 st.set_page_config(page_title="Chatbot", page_icon="🤖", layout="centered")
 
+st.sidebar.image("images/logo-dark.png", use_container_width=True, width=1)
 st.markdown("""
 <div style="text-align:center; margin-top: 2rem; margin-bottom: 0.2rem;">
     <h2>🤖 Chatbot Mangue Metrics</h2>

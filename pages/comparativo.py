@@ -9,13 +9,9 @@ from src.ui import exibir_resultado_carteira
 from src.ui import rodape_mangue_metrics
 
 
-
 st.set_page_config(page_title="Simulador de Carteira", layout="wide")
-
 st.html("styles.html")
-
 st.title("Simulador de Carteira")
-
 tradingview_ticker_tape(height=110, color_theme="dark")
 
 ATIVOS = {
@@ -28,6 +24,17 @@ ATIVOS = {
     'IAU': 'IAU',
 }
 
+PERIODOS_LABELS = {
+    "1 ano": "1y",    
+    "3 anos": "3y",
+    "5 anos": "5y",        
+    "Ano Atual": "YTD",
+    "6 meses": "6mo",
+    "1 mês": "1mo"
+    
+}
+
+# Início da área do sidebar
 st.sidebar.image("images/logo-dark.png", use_container_width=True, width=1)
 st.sidebar.header("Monte sua Carteira")
 
@@ -44,16 +51,6 @@ valor_inicial = st.sidebar.number_input(
     step=100.0,
     format="%.2f"
 )
-
-PERIODOS_LABELS = {
-    "1 ano": "1y",    
-    "3 anos": "3y",
-    "5 anos": "5y",        
-    "Ano Atual": "YTD",
-    "6 meses": "6mo",
-    "1 mês": "1mo"
-    
-}
 
 periodo_label = st.sidebar.selectbox(
     "Período dos dados",
@@ -116,23 +113,14 @@ if not ativos_com_dados:
     st.warning("Nenhum dos ativos selecionados possui dados disponíveis para o período escolhido.")     
     
     st.stop()
+# Fim da área do sidebar
 
-# Gráfico Simulação de Carteira
-col1, col2, col3 = st.columns([0.1, 3, 0.3])
-
-
-with col2:
-    st.html('<span class="graph_indicator"></span>')
-    st.subheader("Gráfico - Evolução da Carteira e Ativos")
-    df_pct, ativos_grafico = calcular_valorizacao_percentual(df, ativos_com_dados, pesos, total)
-    fig = grafico_evolucao_percentual(df_pct, ativos_grafico)
-    fig = adicionar_anotacoes_percentuais(fig, df_pct, ativos_grafico)
-    st.plotly_chart(fig, use_container_width=True)
+# Início da área do gráfico de simulação
 
 # Cálculo monetário para o resumo
 df_valor, valores_iniciais_ativos = calcular_valor_monetario(df, ativos_com_dados, pesos, valor_inicial, total)
 
-with st.expander("Resultado da Carteira", expanded=False):
+with st.expander("Performance da Carteira", expanded=True):
     exibir_resultado_carteira(
         ativos_com_dados=ativos_com_dados,
         valores_iniciais_ativos=valores_iniciais_ativos,
@@ -142,6 +130,16 @@ with st.expander("Resultado da Carteira", expanded=False):
         total=total
     )
 
+# Gráfico Simulação de Carteira
+with st.expander("Gráfico - Evolução da Carteira e Ativos", expanded=False):
+    col1, col2, col3 = st.columns([0.1, 3, 0.3])
+    with col2:
+        st.html('<span class="graph_indicator"></span>')
+        st.subheader("Gráfico - Evolução da Carteira e Ativos")
+        df_pct, ativos_grafico = calcular_valorizacao_percentual(df, ativos_com_dados, pesos, total)
+        fig = grafico_evolucao_percentual(df_pct, ativos_grafico)
+        fig = adicionar_anotacoes_percentuais(fig, df_pct, ativos_grafico)
+        st.plotly_chart(fig, use_container_width=True)
 #st.markdown("---")
 rodape_mangue_metrics()
 
